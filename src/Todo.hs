@@ -1,3 +1,4 @@
+{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE FlexibleInstances #-}
@@ -10,12 +11,14 @@
 module Todo where
 
 import Control.Monad.Trans.Except
+import Control.Monad.Except
 import Data.Text
 import Data.Time (UTCTime)
 import Servant
 import Data.Proxy
 import Data.Aeson.Types
 import GHC.Generics
+import Control.Monad.State
 import qualified Data.Map.Strict as Map
 
 
@@ -29,29 +32,20 @@ data Todo = Todo {
 
 instance ToJSON Todo
 
-todos :: Map.Map Integer Todo
-todos = Map.fromList [(1, Todo "Learn Haskell" False), (2, Todo "Nothing else matters" True)]
+type Todos = Map.Map Integer Todo
 
--- web
+createNew :: Todos
+createNew = Map.fromList [(1, Todo "Learn Haskell" False), (2, Todo "Nothing else matters" True)]
 
-type TodoAPI 
-    =    "todo" :> Get '[JSON] [Todo]
-    :<|> "todo" :> Capture "id" Integer :> Get '[JSON] Todo
+list :: (MonadState Todos m) => m Todos
+list = get
 
-api :: Proxy TodoAPI
-api = Proxy
-
-fetchTodos :: Handler [Todo]
-fetchTodos = return $ Map.elems todos
-
-fetchTodo :: Integer -> Handler Todo
-fetchTodo id = toHandler $ Map.lookup id todos
+fetch :: (MonadError ServantErr m, MonadState Todo.Todos m) => Integer -> m Todo.Todo
+fetch id = do
+  ts <- get
+  toM $ Map.lookup id ts
     where 
-      toHandler :: Maybe Todo -> Handler Todo
-      toHandler (Just todo) = return todo
-      toHandler Nothing = throwError err404
+      toM :: (MonadError ServantErr m, MonadState Todo.Todos m) => Maybe Todo.Todo -> m Todo.Todo
+      toM (Just todo) = return todo
+      toM Nothing = throwError err404
 
-server :: Server TodoAPI
-server 
-  =    fetchTodos
-  :<|> fetchTodo
