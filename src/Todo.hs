@@ -1,21 +1,15 @@
 {-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE DataKinds #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE RankNTypes #-}
-{-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE TypeOperators #-}
 module Todo where
 
 import Control.Monad.Trans.Except
 import Control.Monad.Except
 import Data.Text
-import Data.Time (UTCTime)
 import Servant
-import Data.Proxy
 import Data.Aeson.Types
 import GHC.Generics
 import Control.Monad.State
@@ -26,7 +20,6 @@ import qualified Data.Map.Strict as Map
 data Todo = Todo {
                    _title :: String
                  , _completed :: Bool
-                 -- , _registration_date :: UTCTime
                  }
             deriving (Eq, Show, Generic)
 
