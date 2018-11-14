@@ -45,7 +45,6 @@ fetch id = do
   ts <- get
   toM $ Map.lookup id ts
     where 
-      toM :: (MonadError ServantErr m, MonadState Todo.Todos m) => Maybe Todo.Todo -> m Todo.Todo
       toM (Just todo) = return todo
       toM Nothing = throwError err404
 
