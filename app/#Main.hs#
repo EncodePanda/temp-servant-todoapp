@@ -1,0 +1,10 @@
+
+
+module Main where
+
+import qualified Servant
+import Network.Wai.Handler.Warp
+import Todo
+
+main :: IO ()
+main = run 8080 (Servant.serve api server)
