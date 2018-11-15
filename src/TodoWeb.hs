@@ -25,6 +25,7 @@ import qualified Data.Map.Strict as Map
 type TodoAPI 
     =    "todo" :> Get '[JSON] (Map.Map Integer Todo.Todo)
     :<|> "todo" :> Capture "id" Integer :> Get '[JSON] Todo.Todo
+    :<|> "todo" :> Capture "id" Integer :> ReqBody '[JSON] Todo.Todo :> Put '[JSON] Todo.Todo
 
 api :: Proxy TodoAPI
 api = Proxy
@@ -33,4 +34,5 @@ server :: (MonadError ServantErr m, MonadState Todo.Todos m) => ServerT TodoAPI 
 server
   =    Todo.list
   :<|> Todo.fetch
+  :<|> Todo.add
 

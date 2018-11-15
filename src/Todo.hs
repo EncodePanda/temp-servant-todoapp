@@ -15,8 +15,6 @@ import GHC.Generics
 import Control.Monad.State
 import qualified Data.Map.Strict as Map
 
-
--- domain
 data Todo = Todo {
                    _title :: String
                  , _completed :: Bool
@@ -24,6 +22,7 @@ data Todo = Todo {
             deriving (Eq, Show, Generic)
 
 instance ToJSON Todo
+instance FromJSON Todo
 
 type Todos = Map.Map Integer Todo
 
@@ -41,3 +40,7 @@ fetch id = do
       toM (Just todo) = return todo
       toM Nothing = throwError err404
 
+add :: (MonadState Todos m) => Integer -> Todo -> m Todo
+add id todo = do
+  modify (Map.insert id todo)
+  return todo
