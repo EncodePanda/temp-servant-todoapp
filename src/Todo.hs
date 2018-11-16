@@ -64,3 +64,14 @@ add :: (Monad m, TodosStore m) => Integer -> Todo -> m Todo
 add id todo = do
   modifyStore (Map.insert id todo)
   return todo
+
+addNoId :: (Monad m, TodosStore m) => Todo -> m Todo
+addNoId todo = do
+  ts <- getStore
+  let nextId = genNextId $ Map.lookupMax ts
+  add nextId todo
+    where
+      genNextId :: Maybe (Integer, Todo) -> Integer
+      genNextId (Just (id, _)) = id + 1
+      genNextId Nothing = 1
+

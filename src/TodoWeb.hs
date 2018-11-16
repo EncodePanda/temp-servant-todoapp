@@ -25,6 +25,7 @@ type TodoAPI
     =    "todo" :> Get '[JSON] (Map.Map Integer Todo.Todo)
     :<|> "todo" :> Capture "id" Integer :> Get '[JSON] Todo.Todo
     :<|> "todo" :> Capture "id" Integer :> ReqBody '[JSON] Todo.Todo :> Put '[JSON] Todo.Todo
+    :<|> "todo" :> ReqBody '[JSON] Todo.Todo :> Post '[JSON] Todo.Todo
 
 api :: Proxy TodoAPI
 api = Proxy
@@ -34,4 +35,5 @@ server
   =    Todo.list
   :<|> Todo.fetch
   :<|> Todo.add
+  :<|> Todo.addNoId
 
