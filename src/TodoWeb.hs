@@ -19,7 +19,6 @@ import Servant
 import Data.Proxy
 import Data.Aeson.Types
 import GHC.Generics
-import Control.Monad.State
 import qualified Data.Map.Strict as Map
 
 type TodoAPI 
@@ -30,7 +29,7 @@ type TodoAPI
 api :: Proxy TodoAPI
 api = Proxy
 
-server :: (MonadError ServantErr m, MonadState Todo.Todos m) => ServerT TodoAPI m
+server :: (MonadError ServantErr m, Todo.TodosStore m) => ServerT TodoAPI m
 server
   =    Todo.list
   :<|> Todo.fetch

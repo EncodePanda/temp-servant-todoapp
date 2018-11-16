@@ -1,3 +1,4 @@
+{-# LANGUAGE UndecidableInstances #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE FlexibleInstances #-}
@@ -12,8 +13,27 @@ import Data.Text
 import Servant
 import Data.Aeson.Types
 import GHC.Generics
-import Control.Monad.State
 import qualified Data.Map.Strict as Map
+import Control.Monad.Reader
+import Control.Monad.STM
+import Control.Concurrent.STM.TVar
+import Control.Monad.Trans.Class
+
+class TodosStore m where
+  getStore :: m Todos
+  modifyStore :: (Todos -> Todos) -> m ()
+
+instance (MonadIO m, MonadReader (TVar Todos) m) => TodosStore m where
+  getStore = do
+    tvar <- ask
+    liftIO $ readTVarIO tvar
+  modifyStore f = do
+    tvar <- ask
+    liftIO $ atomically $ modifyTVar tvar f
+
+instance (Monad m, TodosStore m) => TodosStore (ExceptT e m) where
+  getStore = lift getStore
+  modifyStore f = lift $ modifyStore f
 
 data Todo = Todo {
                    _title :: String
@@ -29,18 +49,18 @@ type Todos = Map.Map Integer Todo
 createNew :: Todos
 createNew = Map.fromList [(1, Todo "Learn Haskell" False), (2, Todo "Nothing else matters" True)]
 
-list :: (MonadState Todos m) => m Todos
-list = get
+list :: (TodosStore m) => m Todos
+list = getStore
 
-fetch :: (MonadError ServantErr m, MonadState Todo.Todos m) => Integer -> m Todo.Todo
+fetch :: (MonadError ServantErr m, TodosStore m) => Integer -> m Todo.Todo
 fetch id = do
-  ts <- get
+  ts <- getStore
   toM $ Map.lookup id ts
     where 
       toM (Just todo) = return todo
       toM Nothing = throwError err404
 
-add :: (MonadState Todos m) => Integer -> Todo -> m Todo
+add :: (Monad m, TodosStore m) => Integer -> Todo -> m Todo
 add id todo = do
-  modify (Map.insert id todo)
+  modifyStore (Map.insert id todo)
   return todo
